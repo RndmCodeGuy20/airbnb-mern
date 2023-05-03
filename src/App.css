@@ -1,0 +1,18 @@
+.overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.nav__text {
+    display: none;
+    overflow: hidden;
+}
+
+.side__navbar:hover {
+    width: 18rem;
+}
+
+.side__navbar:hover .nav__text {
+    display: block;
+}
+
+
