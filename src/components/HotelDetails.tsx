@@ -1,4 +1,6 @@
 import '../styles/HotelDetails.module.css';
+import {useEffect, useState} from 'react';
+import axios from 'axios';
 
 type Props = {
     data: {
@@ -116,9 +118,46 @@ const hotel: Props = {
 };
 
 
-export function HotelDetails({showHotelDetails, prop}) {
+export function HotelDetails({showHotelDetails, hotelId}) {
 
-    // console.log(prop);
+    const [hotelData, setHotelData] = useState({
+        '_id': '64526ff8915de2451105be0d',
+        'name': 'Hotel California',
+        'address': {
+            'street': '1234 Main St',
+            'city': 'Santa Monica',
+            'state': 'CA',
+            'zip': '90401',
+            '_id': '64646870c93f1d714c3b61a9',
+        },
+        'price_per_night': 399.99,
+        'description': {
+            'num_of_rooms': 1,
+            'num_of_guests': 2,
+            'num_of_beds': 1,
+            '_id': '64646870c93f1d714c3b61aa',
+        },
+    });
+
+    // console.log(showHotelDetails);
+    useEffect(() => {
+        return () => {
+            console.log('inside details', hotelId);
+            if (hotelId) {
+                axios.get(`http://localhost:5000/api/v1.0/hotels/${hotelId}`)
+                    .then((response) => {
+                        setHotelData(response.data.data);
+
+                        console.log(hotelData.price_per_night);
+
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            }
+        };
+    }, []);
+
 
     return (
         <div
@@ -165,9 +204,9 @@ export function HotelDetails({showHotelDetails, prop}) {
                     <div className={'hotel_details_info w-2/3 flex flex-col gap-4 mb-10'}>
                         <div className={'hotel_details_name_container flex flex-row justify-between'}>
                             <div className={'hotel_details_name flex flex-col gap-2'}>
-                                <div className={'text-2xl'}>{hotel.data.name}</div>
+                                <div className={'text-2xl'}>{hotelData.name}</div>
                                 <div
-                                    className={'text-lg font-light text-dark_gray'}>{hotel.data.address}, {hotel.data.city}, {hotel.data.country}</div>
+                                    className={'text-lg font-light text-dark_gray'}>{hotelData.address.street}, {hotelData.address.city}, {hotelData.address.state} - {hotelData.address.zip}</div>
                             </div>
                             <div className={'hotel_details_name flex flex-row gap-2 text-2xl'}>
                                 <div className={'p-2 bg-gray rounded-full h-max w-max'}>
@@ -416,7 +455,7 @@ export function HotelDetails({showHotelDetails, prop}) {
                                 className={'hotel_details_checkout_head flex flex-row items-center justify-between gap-4'}>
                                 <div className={'hotel_details_checkout_head_price text-dark_gray text-md'}>
                                 <span
-                                    className={'font-semibold text-xl text-primary'}>${hotel.data.price_per_night}</span> /night
+                                    className={'font-semibold text-xl text-primary'}>${hotelData.price_per_night}</span> /night
                                 </div>
                                 <div
                                     className={'hotel_details_checkout_head_rating text-dark_gray flex flex-row gap-2 items-center'}>
@@ -513,7 +552,7 @@ export function HotelDetails({showHotelDetails, prop}) {
                                         </svg>
                                     </span>
                                             <span
-                                                className={'text-dark_gray text-sm'}>${hotel.data.price_per_night}</span>
+                                                className={'text-dark_gray text-sm'}>${hotelData.price_per_night}</span>
                                         </div>))}
                                 </div>
                                 <hr className={'rounded-2xl bg-dark_gray border-gray'}/>

@@ -1,7 +1,111 @@
 import '../styles/Login.module.css';
-import login from '../assets/login_image.jpg';
+import {useState} from 'react';
+import axios from 'axios';
+import {useNavigate} from 'react-router-dom';
 
-export function Login() {
+export function Login({setIsAuthenticated, setUserId}) {
+
+    const navigate = useNavigate();
+    const tkn = '';
+
+    const [loginData, setLoginData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+    });
+
+    const [formDataErrors, setFormDataErrors] = useState({
+        firstName: false,
+        lastName: false,
+        email: false,
+        password: false,
+        register: false,
+        login: false,
+    });
+
+    const [formState, setFormState] = useState('login');
+
+    const handleChange = (event: any) => {
+        setLoginData({...loginData, [event.target.name]: event.target.value});
+    };
+
+    const handleSubmit = (event: any) => {
+        event.preventDefault();
+        if (!validateEmail(loginData.email)) {
+            setFormDataErrors({...formDataErrors, email: true});
+        } else {
+            setFormDataErrors({...formDataErrors, email: false});
+        }
+        if (!validatePassword(loginData.password)) {
+            setFormDataErrors({...formDataErrors, password: true});
+        } else {
+            setFormDataErrors({...formDataErrors, password: false});
+        }
+
+
+        // handle login
+        if (formState === 'login') {
+            axios.post('http://localhost:5000/api/v1.0/user/login', {
+                email: loginData.email,
+                password: loginData.password,
+            }, {
+                headers: {
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiNjQ1M2RkMTYyYWVlZDNkMGMzMTIwYzEwIiwiZW1haWwiOiJzaGFudGFudS5tYW5lLjJAZ21haWwuY29tIn0sImlhdCI6MTY4MzIxNzY4NiwiZXhwIjoxNjkwOTkzNjg2fQ.iIZHyB60Xd6jLeTzAv_RSb7xHvJ8dtv760x5VGfv1N8',
+                },
+            }).then((response) => {
+                console.log(response.status);
+                setIsAuthenticated(true);
+                console.log('inside login', response.data.data.id);
+                setUserId(response.data.data.id);
+                localStorage.setItem('token', response.data.data.token);
+                localStorage.setItem('userDetails', JSON.stringify({
+                    id: response.data.data.id,
+                    firstName: response.data.data.firstName,
+                    lastName: response.data.data.lastName,
+                    email: response.data.data.email,
+                }));
+                navigate('/hotels');
+            }).catch((error) => {
+                setFormDataErrors({...formDataErrors, login: true});
+                setLoginData({...loginData, email: loginData.email, password: ''});
+                console.log(error);
+                setIsAuthenticated(false);
+            });
+        } else {
+            axios.post('http://localhost:5000/api/v1.0/user/register', {
+                firstName: loginData.firstName,
+                lastName: loginData.lastName,
+                email: loginData.email,
+                address: {
+                    street: '1234 Main St',
+                    city: 'San Francisco',
+                    state: 'CA',
+                },
+                password: loginData.password,
+            }).then((response) => {
+                console.log(response.data.data.token);
+                setIsAuthenticated(true);
+                localStorage.setItem('token', response.data.data.token);
+                setFormState('login');
+            }).catch((error) => {
+                setFormDataErrors({...formDataErrors, register: true});
+                console.log(error);
+                setIsAuthenticated(false);
+            });
+        }
+    };
+
+    const validateEmail = (email: string) => {
+        const re = /\S+@\S+\.\S+/;
+        return re.test(email);
+    };
+
+    const validatePassword = (password: string) => {
+        const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+        return re.test(password);
+    };
+
     return (
         <>
             <div className={'p-4 flex flex-row w-screen h-screen'}>
@@ -12,12 +116,13 @@ export function Login() {
                             alt={'logo'} width={102} height={32}/>
                     </a>
                     <div className={'flex flex-col items-center h-full mt-10'}>
-                        <div className={'text-5xl font-semibold'}>Create an Account</div>
+                        <div
+                            className={'text-5xl font-semibold'}>{formState === 'login' ? 'Hop Back In!' : 'Create an Account'}</div>
                         <p className={'text-sm mt-2 text-dark_gray'}>Find a place that feels "just like" your
                             home...</p>
 
                         <div
-                            className={'border-2 border-dark_gray rounded-2xl w-3/5 h-max p-3 mt-14 font-semibold flex flex-row justify-center gap-3'}>
+                            className={'border-2 border-dark_gray rounded-2xl w-3/5 h-max p-3 mt-14 font-semibold flex flex-row justify-center gap-3 hover:cursor-pointer hover:bg-[#FCF7F9] duration-300 ease-in-out'}>
                             <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
                                  width="24" height="24"
                                  viewBox="0 0 48 48">
@@ -33,7 +138,7 @@ export function Login() {
                             Continue with Google
                         </div>
                         <div
-                            className={'border-2 border-dark_gray rounded-2xl w-3/5 h-max p-3 mt-4 font-semibold flex flex-row justify-center gap-3'}>
+                            className={'border-2 border-dark_gray rounded-2xl w-3/5 h-max p-3 mt-4 font-semibold flex flex-row justify-center gap-3 hover:cursor-pointer hover:bg-[#FCF7F9] duration-300 ease-in-out'}>
                             <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
                                  width="24" height="24"
                                  viewBox="0 0 50 50">
@@ -43,27 +148,73 @@ export function Login() {
                             Continue with Apple
                         </div>
                         <div className={'text-sm mt-4 text-dark_gray'}>or</div>
-                        <div className={'flex flex-col gap-2 mt-4'}>
-                            <div className={'flex flex-row gap-3 w-full'}>
+                        <div className={'flex flex-col gap-2 mt-4 w-3/5'}>
+                            <form onSubmit={handleSubmit} className={'w-full'} method={'/hotels'}>
+                                {formState === 'register' ? <div className={'flex flex-row gap-3 w-full mt-2'}>
+                                    <input type="text"
+                                           name={'firstName'}
+                                           placeholder={'First Name'}
+                                           value={loginData.firstName}
+                                           onChange={handleChange}
+                                           required={true}
+                                           className={'border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                                    <input type="text"
+                                           name={'lastName'}
+                                           value={loginData.lastName}
+                                           onChange={handleChange}
+                                           required={true}
+                                           placeholder={'Last Name'}
+                                           className={' border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                                </div> : null}
                                 <input type="text"
-                                       placeholder={'First Name'}
-                                       className={'border-2 border-dark_gray rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight'}/>
-                                <input type="text"
-                                       placeholder={'Last Name'}
-                                       className={' border-2 border-dark_gray rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight'}/>
+                                       name={'email'}
+                                       placeholder={'Email'}
+                                       value={loginData.email}
+                                       required={true}
+                                       onChange={handleChange}
+                                       className={'mt-3 border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                                {formDataErrors.email && <div className={'text-xs text-red-500'}>invalid email*</div>}
+                                {(formDataErrors.login || formDataErrors.register) &&
+                                    <div className={'text-xs text-red-500'}>User could not be logged in</div>}
+                                <input type="password"
+                                       name={'password'}
+                                       autoComplete={'on'}
+                                       value={loginData.password}
+                                       required={true}
+                                       onChange={handleChange}
+                                       placeholder={'Password'}
+                                       className={'mt-3 border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                                {formDataErrors.password &&
+                                    <div className={'text-xs text-red-500'}>must be 8 letters, and must contain both a-z
+                                        & A-Z</div>}
+                                {(formDataErrors.login || formDataErrors.register) &&
+                                    <div className={'text-xs text-red-500'}>User could not be logged in</div>}
+                                <input type={'submit'}
+                                       value={`${formState === 'login' ? 'Login' : 'Register'}`}
+                                       className={'w-full bg-[#FCF7F9] border-2 border-highlight mt-5 p-4 text-highlight font-semibold text-xl rounded-2xl cursor-pointer hover:bg-highlight hover:text-white duration-300 ease-in-out'}/>
+                            </form>
+                        </div>
+                        <hr className={'w-3/5 mt-5 bg-gray border-gray'}/>
+                        <div className={'flex flex-row gap-2 mt-5 w-3/5 items-center justify-center'}>
+                            <div
+                                className={'text-sm text-dark_gray'}>{formState === 'login' ? 'New here?' : 'Already have an account?'}</div>
+                            <div onClick={() => {
+                                formState === 'login' ? setFormState('register') : setFormState('login');
+                                console.log(formState);
+                            }}
+                                 className={'text-sm text-highlight font-semibold cursor-pointer m-1 border-gray border hover:bg-[#FCF7F9] rounded-lg px-2 hover:border hover:border-highlight duration-300 ease-in-out'}>{formState === 'login' ? 'Register' : 'Login'}
                             </div>
-                            <input type="text"
-                                   placeholder={'Email'}
-                                   className={' border-2 border-dark_gray rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight'}/>
-                            <input type="password"
-                                   placeholder={'Password'}
-                                   className={' border-2 border-dark_gray rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight'}/>
                         </div>
                     </div>
                 </div>
                 <div
-                    className={'image__container overflow-hidden w-1/2 h-full  flex flex-col justify-center items-center rounded-3xl'}>
-                    <div className={'w-full h-full bg-gray flex flex-col justify-center items-center'}></div>
+                    className={'image__container overflow-hidden w-1/2 h-full flex flex-col justify-center items-center rounded-3xl'}>
+                    <div className={'w-full h-screen bg-gray flex flex-col justify-center items-center'} style={{
+                        backgroundImage: 'url(https://images.unsplash.com/photo-1559867185-e89ebef683d9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1332&q=80)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        scale: '1',
+                    }}></div>
                 </div>
             </div>
         </>

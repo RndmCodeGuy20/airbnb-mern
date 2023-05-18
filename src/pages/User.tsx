@@ -1,93 +1,144 @@
-export const UserPage = () => {
+import {useEffect, useState} from 'react';
+import axios from 'axios';
+import {Simulate} from 'react-dom/test-utils';
+import error = Simulate.error;
+import {NavBar} from '../components/NavBar.tsx';
+import {useNavigate} from 'react-router-dom';
+
+export function UserPage({userId}) {
+    const navigate = useNavigate();
+
+
+    const [loginData, setLoginData] = useState({
+        id: '',
+        firstName: 'Shantanu',
+        lastName: 'Mane',
+        email: 'manesg@rknec.edu',
+        password: '',
+    });
+
+    useEffect(() => {
+        return () => {
+            const user = JSON.parse(localStorage.getItem('userDetails')) || null;
+            setLoginData({
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                password: '',
+            });
+        };
+    }, []);
+
+    const handleChange = (event: any) => {
+        setLoginData({...loginData, [event.target.name]: event.target.value});
+    };
+
+    const handleUpdate = (event: any) => {
+        event.preventDefault();
+
+        console.log(loginData);
+
+        axios.post('http://localhost:5000/api/v1.0/user/update', {
+            id: loginData.id,
+            firstname: loginData.firstName,
+            lastName: loginData.lastName,
+            email: loginData.email,
+            password: loginData.password,
+        }, {
+            headers: {
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiNjQ1M2RkMTYyYWVlZDNkMGMzMTIwYzEwIiwiZW1haWwiOiJzaGFudGFudS5tYW5lLjJAZ21haWwuY29tIn0sImlhdCI6MTY4MzIxNzY4NiwiZXhwIjoxNjkwOTkzNjg2fQ.iIZHyB60Xd6jLeTzAv_RSb7xHvJ8dtv760x5VGfv1N8',
+            },
+        }).then((response) => {
+            console.log(response);
+            localStorage.setItem('userDetails', JSON.stringify({
+                id: loginData.id,
+                firstname: loginData.firstName,
+                lastName: loginData.lastName,
+                email: loginData.email,
+            }));
+            navigate('/user');
+        }).catch((error) => {
+            console.log(error);
+        });
+
+    };
+
+    const handleDelete = (event: any) => {
+        event.preventDefault();
+        axios.post('http://localhost:5000/api/v1.0/user/delete', {
+            id: loginData.id,
+        })
+            .then((response) => {
+                console.log(response);
+            }).catch((error) => {
+            console.log(error);
+        });
+        console.log('delete');
+        localStorage.removeItem('userDetails');
+        navigate('/');
+    };
+
+
     return (
-        <main class="profile-page">
-        <section class="relative block h-500-px">
-        <div class="absolute top-0 w-full h-full bg-center bg-cover" style="
-    background-image: url('https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80');
-    ">
-    <span id="blackOverlay" class="w-full h-full absolute opacity-50 bg-black"></span>
-        </div>
-        <div class="top-auto bottom-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden h-70-px" style="transform: translateZ(0px)">
-    <svg class="absolute bottom-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" version="1.1" viewBox="0 0 2560 100" x="0" y="0">
-    <polygon class="text-blueGray-200 fill-current" points="2560 0 2560 100 0 100"></polygon>
-        </svg>
-        </div>
-        </section>
-        <section class="relative py-16 bg-blueGray-200">
-    <div class="container mx-auto px-4">
-    <div class="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64">
-    <div class="px-6">
-    <div class="flex flex-wrap justify-center">
-    <div class="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center">
-    <div class="relative">
-    <img alt="..." src="https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg" class="shadow-xl rounded-full h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-16 max-w-150-px">
-        </div>
-        </div>
-        <div class="w-full lg:w-4/12 px-4 lg:order-3 lg:text-right lg:self-center">
-    <div class="py-6 px-3 mt-32 sm:mt-0">
-    <button class="bg-pink-500 active:bg-pink-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150" type="button">
-        Connect
-        </button>
-        </div>
-        </div>
-        <div class="w-full lg:w-4/12 px-4 lg:order-1">
-    <div class="flex justify-center py-4 lg:pt-4 pt-8">
-    <div class="mr-4 p-3 text-center">
-    <span class="text-xl font-bold block uppercase tracking-wide text-blueGray-600">22</span><span class="text-sm text-blueGray-400">Friends</span>
-    </div>
-    <div class="mr-4 p-3 text-center">
-    <span class="text-xl font-bold block uppercase tracking-wide text-blueGray-600">10</span><span class="text-sm text-blueGray-400">Photos</span>
-    </div>
-    <div class="lg:mr-4 p-3 text-center">
-    <span class="text-xl font-bold block uppercase tracking-wide text-blueGray-600">89</span><span class="text-sm text-blueGray-400">Comments</span>
-    </div>
-    </div>
-    </div>
-    </div>
-    <div class="text-center mt-12">
-    <h3 class="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mb-2">
-        Jenna Stones
-    </h3>
-    <div class="text-sm leading-normal mt-0 mb-2 text-blueGray-400 font-bold uppercase">
-    <i class="fas fa-map-marker-alt mr-2 text-lg text-blueGray-400"></i>
-    Los Angeles, California
-    </div>
-    <div class="mb-2 text-blueGray-600 mt-10">
-    <i class="fas fa-briefcase mr-2 text-lg text-blueGray-400"></i>Solution Manager - Creative Tim Officer
-        </div>
-        <div class="mb-2 text-blueGray-600">
-    <i class="fas fa-university mr-2 text-lg text-blueGray-400"></i>University of Computer Science
-        </div>
-        </div>
-        <div class="mt-10 py-10 border-t border-blueGray-200 text-center">
-    <div class="flex flex-wrap justify-center">
-    <div class="w-full lg:w-9/12 px-4">
-    <p class="mb-4 text-lg leading-relaxed text-blueGray-700">
-        An artist of considerable range, Jenna the name taken by
-    Melbourne-raised, Brooklyn-based Nick Murphy writes,
-        performs and records all of his own music, giving it a
-    warm, intimate feel with a solid groove structure. An
-    artist of considerable range.
-    </p>
-    <a href="#pablo" class="font-normal text-pink-500">Show more</a>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-    <footer class="relative bg-blueGray-200 pt-8 pb-6 mt-8">
-    <div class="container mx-auto px-4">
-    <div class="flex flex-wrap items-center md:justify-between justify-center">
-    <div class="w-full md:w-6/12 px-4 mx-auto text-center">
-    <div class="text-sm text-blueGray-500 font-semibold py-1">
-        Made with <a href="https://www.creative-tim.com/product/notus-js" class="text-blueGray-500 hover:text-gray-800" target="_blank">Notus JS</a> by <a href="https://www.creative-tim.com" class="text-blueGray-500 hover:text-blueGray-800" target="_blank"> Creative Tim</a>.
-    </div>
-    </div>
-    </div>
-    </div>
-    </footer>
-    </section>
-    </main>
-    )
+        <>
+            <NavBar setIsAuthenticated={null}/>
+            <main className={'flex flex-col items-center justify-center h-screen'}>
+                <h2 className={'text-3xl font-semibold'}>Update Details</h2>
+                <div className={'flex flex-col gap-2 mt-4 w-2/5'}>
+                    <form className={'w-full'} method={''}>
+                        <div className={'flex flex-row gap-3 w-full mt-2'}>
+                            <input type="text"
+                                   name={'firstName'}
+                                   placeholder={loginData.firstName}
+                                   value={loginData.firstName}
+                                   onChange={handleChange}
+                                   required={true}
+                                   className={'border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                            <input type="text"
+                                   name={'lastName'}
+                                   placeholder={loginData.lastName}
+                                   value={loginData.lastName}
+                                   onChange={handleChange}
+                                   required={true}
+                                   className={' border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                        </div>
+                        <input type="text"
+                               name={'email'}
+                               placeholder={loginData.email}
+                               value={loginData.email}
+                               required={true}
+                               onChange={handleChange}
+                            // disabled={}
+                               className={'mt-3 border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                        {/*{formDataErrors.email && <div className={'text-xs text-red-500'}>invalid email*</div>}*/}
+                        {/*{(formDataErrors.login || formDataErrors.register) &&*/}
+                        {/*    <div className={'text-xs text-red-500'}>User could not be logged in</div>}*/}
+                        <input type="password"
+                               name={'password'}
+                               autoComplete={'on'}
+                               value={loginData.password}
+                               required={true}
+                               onChange={handleChange}
+                               placeholder={'Password'}
+                               className={'mt-3 border-2 border-dark_gray bg-[#FAFBFB] rounded-2xl w-full h-max p-3 font-semibold focus:outline-highlight focus:bg-[#FCF7F9] duration-300'}/>
+                        {/*{formDataErrors.password &&*/}
+                        {/*    <div className={'text-xs text-red-500'}>must be 8 letters, and must contain both a-z*/}
+                        {/*        & A-Z</div>}*/}
+                        {/*{(formDataErrors.login || formDataErrors.register) &&*/}
+                        {/*    <div className={'text-xs text-red-500'}>User could not be logged in</div>}*/}
+                        <input type={'submit'}
+                               value={'Update'}
+                               onClick={handleUpdate}
+                               className={'w-full bg-[#FCF7F9] border-2 border-highlight mt-5 p-4 text-highlight font-semibold text-xl rounded-2xl cursor-pointer hover:bg-highlight hover:text-white duration-300 ease-in-out'}/>
+                        <input type={'submit'}
+                               value={'Delete User'}
+                               onClick={handleDelete}
+                               className={'w-full bg-[#FCF7F9] border-2 border-highlight mt-5 p-4 text-highlight font-semibold text-xl rounded-2xl cursor-pointer hover:bg-highlight hover:text-white duration-300 ease-in-out'}/>
+                    </form>
+
+                </div>
+            </main>
+        </>
+    );
 }
